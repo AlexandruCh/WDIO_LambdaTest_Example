@@ -1,0 +1,62 @@
+group 'qe_wdiopres'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath "gradle.plugin.com.github.psxpaul:gradle-execfork-plugin:0.1.5"
+    }
+}
+apply plugin: "com.github.psxpaul.execfork"
+
+class UITestTask extends Exec {
+
+    @TaskAction
+    void exec() {
+        commandLine 'npm', 'test'
+        super.exec()
+    }
+}
+
+task tests(type: UITestTask) {
+
+    ext.setupEnv = {
+        environment 'SUITE', SUITE
+        environment 'BROWSER', BROWSER
+        if (project.hasProperty("REMOTE")) {
+            environment 'HOST', SELENIUM_GRID_HOST
+            environment 'PORT', SELENIUM_GRID_PORT
+        }else {
+            environment 'HOST', LOCAL_SELENIUM_HOST
+            environment 'PORT', LOCAL_SELENIUM_PORT
+        }
+    }
+
+    if (!project.hasProperty("REMOTE")) {
+        dependsOn('startSelenium')
+        finalizedBy('stopSeleniumServer')
+    }
+
+    doFirst {
+        setupEnv()
+    }
+}
+
+task installSelenium(type: Exec) {
+    commandLine './node_modules/.bin/selenium-standalone', 'install'
+}
+
+task startSelenium(type: com.github.psxpaul.task.ExecFork) {
+    dependsOn('installSelenium')
+    commandLine = "./node_modules/.bin/selenium-standalone"
+    args = ["start"]
+    waitForPort = 4444
+}
+
+task stopSeleniumServer(type: Exec) {
+    commandLine 'pkill',  '-f', 'selenium'
+}
