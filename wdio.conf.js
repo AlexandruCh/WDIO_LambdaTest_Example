@@ -10,8 +10,8 @@ exports.config = {
             }
         ]
     ],
-    user: 'g-a.iftode@metro.digital',
-    key: 'ZhUnbkK3LHtsogffPeZ2WsY0PCsm6Mt8nZ3Y87MONjuJ5nZcrc',
+    user: '',
+    key: '',
     suites: {
 
         LambdaTest: [
